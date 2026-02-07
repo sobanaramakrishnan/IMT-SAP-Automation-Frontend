@@ -5,6 +5,7 @@ import '../services/dc_service.dart';
 
 class DcForm extends StatefulWidget {
   final int userId;
+
   const DcForm({super.key, required this.userId});
 
   @override
@@ -21,15 +22,42 @@ class _DcFormState extends State<DcForm> {
   File? image;
   bool isLoading = false;
 
+  @override
+  void dispose() {
+    try {
+      dcNumberCtrl.dispose();
+    } catch (_) {}
+    try {
+      partNameCtrl.dispose();
+    } catch (_) {}
+    try {
+      partNumberCtrl.dispose();
+    } catch (_) {}
+    try {
+      quantityCtrl.dispose();
+    } catch (_) {}
+    try {
+      weightCtrl.dispose();
+    } catch (_) {}
+    super.dispose();
+  }
+
+  /// PICK IMAGE (OPTIONAL)
   Future<void> pickImage() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+    );
     if (picked != null) {
-      setState(() => image = File(picked.path));
+      setState(() {
+        image = File(picked.path);
+      });
     }
   }
 
+  /// SUBMIT DC DETAILS
   Future<void> submit() async {
     setState(() => isLoading = true);
+
     try {
       await DcService.submitDcDetails(
         userId: widget.userId,
@@ -38,12 +66,22 @@ class _DcFormState extends State<DcForm> {
         partNumber: partNumberCtrl.text,
         quantity: int.parse(quantityCtrl.text),
         weight: double.parse(weightCtrl.text),
-        imageFile: image,
+        imageFile: image, // OPTIONAL
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("DC details submitted successfully")),
+        const SnackBar(
+          content: Text("DC details submitted successfully"),
+        ),
       );
+
+      /// CLEAR FORM AFTER SUBMIT
+      dcNumberCtrl.clear();
+      partNameCtrl.clear();
+      partNumberCtrl.clear();
+      quantityCtrl.clear();
+      weightCtrl.clear();
+      setState(() => image = null);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.toString())),
@@ -81,46 +119,28 @@ class _DcFormState extends State<DcForm> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  /// DC Number + Date
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: dcNumberCtrl,
-                          decoration: input("DC Number"),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          enabled: false,
-                          decoration: input("Date"),
-                          controller: TextEditingController(
-                            text: DateTime.now()
-                                .toIso8601String()
-                                .split('T')[0],
-                          ),
-                        ),
-                      ),
-                    ],
+                  /// DC NUMBER
+                  TextField(
+                    controller: dcNumberCtrl,
+                    decoration: input("DC Number"),
                   ),
                   const SizedBox(height: 16),
 
-                  /// Part Name
+                  /// PART NAME
                   TextField(
                     controller: partNameCtrl,
                     decoration: input("Part Name"),
                   ),
                   const SizedBox(height: 16),
 
-                  /// Part Number
+                  /// PART NUMBER
                   TextField(
                     controller: partNumberCtrl,
                     decoration: input("Part Number"),
                   ),
                   const SizedBox(height: 16),
 
-                  /// Weight + Quantity
+                  /// WEIGHT + QUANTITY
                   Row(
                     children: [
                       Expanded(
@@ -142,9 +162,9 @@ class _DcFormState extends State<DcForm> {
                   ),
                   const SizedBox(height: 20),
 
-                  /// Upload Image
+                  /// IMAGE UPLOAD
                   const Text(
-                    "Upload Image",
+                    "Upload Image (Optional)",
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
@@ -173,8 +193,6 @@ class _DcFormState extends State<DcForm> {
                               ),
                       ),
                       const SizedBox(width: 12),
-
-                      /// 🔥 FIXED OVERFLOW HERE
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: pickImage,
@@ -184,8 +202,7 @@ class _DcFormState extends State<DcForm> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           style: ElevatedButton.styleFrom(
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 16),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
                         ),
                       ),
@@ -194,15 +211,10 @@ class _DcFormState extends State<DcForm> {
 
                   const SizedBox(height: 24),
 
-                  /// Buttons
+                  /// SUBMIT BUTTON
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      OutlinedButton(
-                        onPressed: () {},
-                        child: const Text("Save as Draft"),
-                      ),
-                      const SizedBox(width: 12),
                       ElevatedButton(
                         onPressed: isLoading ? null : submit,
                         child: isLoading
