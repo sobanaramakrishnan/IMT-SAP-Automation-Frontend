@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/dc_details.dart';
+import '../services/dc_service.dart';
 
 class DcVerificationDialog extends StatefulWidget {
   final DcDetails dc;
@@ -12,22 +13,56 @@ class DcVerificationDialog extends StatefulWidget {
 
 class _DcVerificationDialogState extends State<DcVerificationDialog> {
   String processDecision = "Machining";
+  bool isLoading = false;
+
   final TextEditingController remarksCtrl = TextEditingController();
   final TextEditingController verifiedWeightCtrl = TextEditingController();
   final TextEditingController verifiedQuantityCtrl = TextEditingController();
 
   @override
   void dispose() {
-    try {
-      remarksCtrl.dispose();
-    } catch (_) {}
-    try {
-      verifiedWeightCtrl.dispose();
-    } catch (_) {}
-    try {
-      verifiedQuantityCtrl.dispose();
-    } catch (_) {}
+    remarksCtrl.dispose();
+    verifiedWeightCtrl.dispose();
+    verifiedQuantityCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _submit(String status) async {
+    if (verifiedWeightCtrl.text.isEmpty ||
+        verifiedQuantityCtrl.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Enter verified weight & quantity")),
+      );
+      return;
+    }
+
+    setState(() => isLoading = true);
+
+    try {
+      await DcService.verifyDc(
+        dcId: widget.dc.dcId,
+        userId: widget.dc.userId,
+        status: status,
+        reviewedWeight: double.parse(verifiedWeightCtrl.text),
+        reviewedQuantity: int.parse(verifiedQuantityCtrl.text),
+        processType: processDecision,
+        notificationStatus: "true",
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("DC $status successfully")),
+      );
+
+      Navigator.pop(context, true);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
   }
 
   @override
@@ -36,10 +71,9 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: SizedBox(
         width: 600,
-        child: SingleChildScrollView( 
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
               /// HEADER
               Row(
@@ -61,7 +95,7 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  /// LEFT SIDE
+                  /// LEFT
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,25 +106,15 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
                         _info("Weight", "${widget.dc.weight} kg"),
                         _info("Quantity", widget.dc.quantity.toString()),
                         const SizedBox(height: 12),
-
-                        /// IMAGE
                         Container(
                           height: 120,
-                          width: double.infinity,
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: widget.dc.imageUrl != null
-                              ? Image.network(
-                                  widget.dc.imageUrl!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) =>
-                                      const Icon(Icons.broken_image, size: 40),
-                                )
-                              : const Center(
-                                  child: Icon(Icons.image, size: 40),
-                                ),
+                              ? Image.network(widget.dc.imageUrl!,
+                                  fit: BoxFit.cover)
+                              : const Icon(Icons.image, size: 40),
                         ),
                       ],
                     ),
@@ -98,12 +122,10 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
 
                   const SizedBox(width: 16),
 
-                  /// RIGHT SIDE
+                  /// RIGHT
                   Expanded(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        /// VERIFIED WEIGHT
                         TextField(
                           controller: verifiedWeightCtrl,
                           keyboardType: TextInputType.number,
@@ -113,8 +135,6 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
                           ),
                         ),
                         const SizedBox(height: 12),
-
-                        /// VERIFIED QUANTITY
                         TextField(
                           controller: verifiedQuantityCtrl,
                           keyboardType: TextInputType.number,
@@ -124,8 +144,6 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
                           ),
                         ),
                         const SizedBox(height: 12),
-
-                        /// PROCESS DECISION
                         DropdownButtonFormField<String>(
                           value: processDecision,
                           items: const [
@@ -146,8 +164,6 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
                           ),
                         ),
                         const SizedBox(height: 12),
-
-                        /// REMARKS
                         TextField(
                           controller: remarksCtrl,
                           maxLines: 3,
@@ -164,30 +180,27 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
 
               const SizedBox(height: 20),
 
-              /// ACTION BUTTONS
+              /// BUTTONS
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green),
-                      onPressed: () {
-                        // TODO: Approve API
-                        Navigator.pop(context);
-                      },
-                      child: const Text("Verify & Approve"),
+                      onPressed:
+                          isLoading ? null : () => _submit("Approved"),
+                      child: isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text("Verify & Approve"),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red),
-                      onPressed: () {
-                        // TODO: Reject API
-                        Navigator.pop(context);
-                      },
+                      style:
+                          ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                      onPressed:
+                          isLoading ? null : () => _submit("Rejected"),
                       child: const Text("Reject"),
                     ),
                   ),
@@ -203,15 +216,15 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
   Widget _info(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: RichText(
-        text: TextSpan(
-          style: const TextStyle(color: Colors.black),
+      child: Text.rich(
+        TextSpan(
+          text: "$label: ",
+          style: const TextStyle(fontWeight: FontWeight.bold),
           children: [
             TextSpan(
-              text: "$label: ",
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              text: value,
+              style: const TextStyle(fontWeight: FontWeight.normal),
             ),
-            TextSpan(text: value),
           ],
         ),
       ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/home_page.dart';
 import 'screens/view_dc_details.dart';
-
 void main() {
   runApp(const IndoMetalApp());
 }
