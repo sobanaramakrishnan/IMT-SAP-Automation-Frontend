@@ -2,22 +2,25 @@ import 'package:flutter/material.dart';
 import '../services/dc_service.dart';
 import '../models/dc_details.dart';
 import '../screens/dc_verification_dialog.dart';
-
 class ViewDcDetails extends StatefulWidget {
   const ViewDcDetails({super.key});
-
   @override
   State<ViewDcDetails> createState() => _ViewDcDetailsState();
 }
-
 class _ViewDcDetailsState extends State<ViewDcDetails> {
   late Future<List<DcDetails>> dcList;
-
+  final Map<String, String> dcStatus = {};
   @override
   void initState() {
     super.initState();
     dcList = DcService.fetchDcDetails();
   }
+
+  int get pendingCount =>
+      dcStatus.values.where((s) => s == "Pending").length;
+
+  int get verifiedCount =>
+      dcStatus.values.where((s) => s == "Verified").length;
 
   @override
   Widget build(BuildContext context) {
@@ -42,14 +45,14 @@ class _ViewDcDetailsState extends State<ViewDcDetails> {
                   color: Colors.orange,
                   icon: Icons.hourglass_empty,
                   title: "Pending Verification",
-                  count: "3",
+                  count: pendingCount.toString(),
                 ),
                 const SizedBox(width: 10),
                 _summaryCard(
                   color: Colors.green,
                   icon: Icons.check_circle,
                   title: "Verified",
-                  count: "0",
+                  count: verifiedCount.toString(),
                 ),
               ],
             ),
@@ -60,7 +63,7 @@ class _ViewDcDetailsState extends State<ViewDcDetails> {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 12),
               color: Colors.grey.shade200,
-              child: const Row(
+              child: Row(
                 children: [
                   _TableHeader("DC No"),
                   _TableHeader("Part Name"),
@@ -90,10 +93,16 @@ class _ViewDcDetailsState extends State<ViewDcDetails> {
                     return const Center(child: Text("No DC details found"));
                   }
 
+                  /// Initialize default status
+                  for (var dc in data) {
+                    dcStatus.putIfAbsent(dc.dcNumber, () => "Pending");
+                  }
+
                   return ListView.builder(
                     itemCount: data.length,
                     itemBuilder: (context, index) {
                       final dc = data[index];
+                      final status = dcStatus[dc.dcNumber]!;
 
                       return Container(
                         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -108,12 +117,41 @@ class _ViewDcDetailsState extends State<ViewDcDetails> {
                             _TableCell(dc.partName),
                             _TableCell(dc.quantity.toString()),
                             _TableCell("${dc.weight} kg"),
-                            const _TableCell(
-                              "Pending",
-                              color: Colors.orange,
+
+                            /// STATUS DROPDOWN
+                            Expanded(
+                              child: Center(
+                                child: DropdownButton<String>(
+                                  value: status,
+                                  underline: const SizedBox(),
+                                  items: const [
+                                    DropdownMenuItem(
+                                      value: "Pending",
+                                      child: Text(
+                                        "Pending",
+                                        style:
+                                            TextStyle(color: Colors.orange),
+                                      ),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: "Verified",
+                                      child: Text(
+                                        "Verified",
+                                        style:
+                                            TextStyle(color: Colors.green),
+                                      ),
+                                    ),
+                                  ],
+                                  onChanged: (value) {
+                                    setState(() {
+                                      dcStatus[dc.dcNumber] = value!;
+                                    });
+                                  },
+                                ),
+                              ),
                             ),
 
-                            /// VIEW BUTTON CELL
+                            /// VIEW BUTTON
                             Expanded(
                               child: Center(
                                 child: ElevatedButton(
@@ -125,10 +163,6 @@ class _ViewDcDetailsState extends State<ViewDcDetails> {
                                           DcVerificationDialog(dc: dc),
                                     );
                                   },
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 20, vertical: 10),
-                                  ),
                                   child: const Text("View"),
                                 ),
                               ),
@@ -189,7 +223,7 @@ class _ViewDcDetailsState extends State<ViewDcDetails> {
 /// TABLE HEADER CELL
 class _TableHeader extends StatelessWidget {
   final String text;
-  const _TableHeader(this.text);
+  _TableHeader(this.text);
 
   @override
   Widget build(BuildContext context) {
@@ -206,9 +240,7 @@ class _TableHeader extends StatelessWidget {
 /// TABLE BODY CELL
 class _TableCell extends StatelessWidget {
   final String text;
-  final Color? color;
-
-  const _TableCell(this.text, {this.color});
+  _TableCell(this.text);
 
   @override
   Widget build(BuildContext context) {
@@ -216,7 +248,6 @@ class _TableCell extends StatelessWidget {
       child: Text(
         text,
         textAlign: TextAlign.center,
-        style: TextStyle(color: color ?? Colors.black),
       ),
     );
   }
