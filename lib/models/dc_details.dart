@@ -31,4 +31,6 @@ class DcDetails {
       weight: (json["weight"] as num).toDouble(),
     );
   }
+
+  get verifiedStatus => null;
 }

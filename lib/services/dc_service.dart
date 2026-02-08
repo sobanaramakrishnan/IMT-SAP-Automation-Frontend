@@ -5,7 +5,6 @@ import '../models/dc_details.dart';
 
 class DcService {
   static const String baseUrl = "http://127.0.0.1:8000";
-  // Android Emulator -> http://10.0.2.2:8000
 
   // ================= CREATE DC =================
   static Future<void> submitDcDetails({
@@ -40,7 +39,7 @@ class DcService {
     }
   }
 
-  // ================= FETCH DC =================
+  // ================= FETCH DC LIST =================
   static Future<List<DcDetails>> fetchDcDetails() async {
     final response = await http.get(
       Uri.parse("$baseUrl/view-dc-details"),
@@ -52,14 +51,16 @@ class DcService {
       final List<dynamic> data = decoded["data"];
 
       return data
-          .map((item) => DcDetails.fromJson(item as Map<String, dynamic>))
+          .map(
+            (item) => DcDetails.fromJson(item as Map<String, dynamic>),
+          )
           .toList();
     } else {
       throw Exception("Failed to fetch DC details");
     }
   }
 
-  // ================= VERIFY / APPROVE / REJECT DC =================
+  // ================= VERIFY / APPROVE / REJECT =================
   static Future<void> verifyDc({
     required int dcId,
     required int userId,

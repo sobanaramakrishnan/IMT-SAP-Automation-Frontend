@@ -5,7 +5,10 @@ import '../services/dc_service.dart';
 class DcVerificationDialog extends StatefulWidget {
   final DcDetails dc;
 
-  const DcVerificationDialog({super.key, required this.dc});
+  const DcVerificationDialog({
+    super.key,
+    required this.dc,
+  });
 
   @override
   State<DcVerificationDialog> createState() => _DcVerificationDialogState();
@@ -27,11 +30,13 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
     super.dispose();
   }
 
-  Future<void> _submit(String status) async {
+  Future<void> _submit(String action) async {
     if (verifiedWeightCtrl.text.isEmpty ||
         verifiedQuantityCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Enter verified weight & quantity")),
+        const SnackBar(
+          content: Text("Enter verified weight & quantity"),
+        ),
       );
       return;
     }
@@ -42,33 +47,35 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
       await DcService.verifyDc(
         dcId: widget.dc.dcId,
         userId: widget.dc.userId,
-        status: status,
+        status: action, // Approved / Rejected
         reviewedWeight: double.parse(verifiedWeightCtrl.text),
         reviewedQuantity: int.parse(verifiedQuantityCtrl.text),
         processType: processDecision,
         notificationStatus: "true",
       );
 
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("DC $status successfully")),
+      /// RETURN RESULT TO DASHBOARD
+      Navigator.pop(
+        context,
+        action == "Approved" ? "Verified" : "Pending",
       );
-
-      Navigator.pop(context, true);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.toString())),
       );
     } finally {
-      if (mounted) setState(() => isLoading = false);
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: SizedBox(
         width: 600,
         child: SingleChildScrollView(
@@ -81,14 +88,18 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
                 children: [
                   const Text(
                     "DC Verification",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
-                  )
+                  ),
                 ],
               ),
+
               const Divider(),
 
               /// BODY
@@ -104,17 +115,27 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
                         _info("Part Name", widget.dc.partName),
                         _info("Part Number", widget.dc.partNumber),
                         _info("Weight", "${widget.dc.weight} kg"),
-                        _info("Quantity", widget.dc.quantity.toString()),
+                        _info(
+                          "Quantity",
+                          widget.dc.quantity.toString(),
+                        ),
                         const SizedBox(height: 12),
                         Container(
                           height: 120,
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
+                            border: Border.all(
+                              color: Colors.grey.shade300,
+                            ),
                           ),
                           child: widget.dc.imageUrl != null
-                              ? Image.network(widget.dc.imageUrl!,
-                                  fit: BoxFit.cover)
-                              : const Icon(Icons.image, size: 40),
+                              ? Image.network(
+                                  widget.dc.imageUrl!,
+                                  fit: BoxFit.cover,
+                                )
+                              : const Icon(
+                                  Icons.image,
+                                  size: 40,
+                                ),
                         ),
                       ],
                     ),
@@ -186,21 +207,27 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green),
-                      onPressed:
-                          isLoading ? null : () => _submit("Approved"),
+                        backgroundColor: Colors.green,
+                      ),
+                      onPressed: isLoading
+                          ? null
+                          : () => _submit("Approved"),
                       child: isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
+                          ? const CircularProgressIndicator(
+                              color: Colors.white,
+                            )
                           : const Text("Verify & Approve"),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: ElevatedButton(
-                      style:
-                          ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                      onPressed:
-                          isLoading ? null : () => _submit("Rejected"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
+                      onPressed: isLoading
+                          ? null
+                          : () => _submit("Rejected"),
                       child: const Text("Reject"),
                     ),
                   ),
