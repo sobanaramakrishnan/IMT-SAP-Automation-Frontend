@@ -80,7 +80,7 @@ class DcService {
       body: {
         "dc_id": dcId.toString(),
         "user_id": userId.toString(),
-        "status": status,
+        "verification_status": status,
         "reviewed_weight": reviewedWeight.toString(),
         "reviewed_quantity": reviewedQuantity.toString(),
         "process_type": processType,

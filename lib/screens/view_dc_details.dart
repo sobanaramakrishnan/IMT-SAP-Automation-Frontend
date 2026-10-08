@@ -19,11 +19,20 @@ class _ViewDcDetailsState extends State<ViewDcDetails> {
     dcList = DcService.fetchDcDetails();
   }
 
-  int _pendingCount(List<DcDetails> list) =>
-      list.where((d) => (d.verifiedStatus ?? "").toLowerCase() != "verified").length;
+    bool _isVerified(DcDetails dc) {
+    final status = (dc.verifiedStatus ?? "").toLowerCase();
+    return status == "approved" || status == "verified";
+    }
+
+    int _pendingCount(List<DcDetails> list) => list
+      .where((dc) =>
+        (dc.verifiedStatus == null ||
+          dc.verifiedStatus!.isEmpty ||
+          dc.verifiedStatus!.toLowerCase() == "pending"))
+      .length;
 
   int _verifiedCount(List<DcDetails> list) =>
-      list.where((d) => (d.verifiedStatus ?? "").toLowerCase() == "verified").length;
+      list.where(_isVerified).length;
 
   @override
   Widget build(BuildContext context) {
@@ -91,10 +100,10 @@ class _ViewDcDetailsState extends State<ViewDcDetails> {
                     itemCount: data.length,
                     itemBuilder: (context, index) {
                       final dc = data[index];
-                      final status =
-                          (dc.verifiedStatus ?? "").toLowerCase() == "verified"
-                              ? "Verified"
-                              : "Pending";
+                        final status = dc.verifiedStatus?.isNotEmpty == true
+                          ? dc.verifiedStatus!
+                          : "Pending";
+                        final isVerified = _isVerified(dc);
 
                       return Container(
                         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -115,9 +124,11 @@ class _ViewDcDetailsState extends State<ViewDcDetails> {
                                 child: Text(
                                   status,
                                   style: TextStyle(
-                                    color: status == "Verified"
+                                      color: isVerified
                                         ? Colors.green
-                                        : Colors.orange,
+                                        : status.toLowerCase() == "rejected"
+                                          ? Colors.red
+                                          : Colors.orange,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -127,7 +138,7 @@ class _ViewDcDetailsState extends State<ViewDcDetails> {
                             Expanded(
                               child: Center(
                                 child: ElevatedButton(
-                                  onPressed: status == "Verified"
+                                  onPressed: isVerified
                                       ? null
                                       : () async {
                                           final result =

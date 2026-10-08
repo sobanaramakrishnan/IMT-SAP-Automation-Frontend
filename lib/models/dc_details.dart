@@ -7,6 +7,7 @@ class DcDetails {
   final String? imageUrl;
   final int quantity;
   final double weight;
+  final String? verifiedStatus;
 
   DcDetails({
     required this.dcId,
@@ -17,6 +18,7 @@ class DcDetails {
     this.imageUrl,
     required this.quantity,
     required this.weight,
+    this.verifiedStatus,
   });
 
   factory DcDetails.fromJson(Map<String, dynamic> json) {
@@ -29,8 +31,7 @@ class DcDetails {
       imageUrl: json["image_url"],
       quantity: json["quantity"] ?? 0,
       weight: (json["weight"] as num).toDouble(),
+      verifiedStatus: json["verified_status"] as String?,
     );
   }
-
-  get verifiedStatus => null;
 }
