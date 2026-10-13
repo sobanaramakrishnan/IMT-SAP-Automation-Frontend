@@ -1,3 +1,4 @@
+import '../main.dart' show ThemeToggleAction;
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../models/login_request.dart';
@@ -13,6 +14,7 @@ class UserLogin extends StatefulWidget {
 class _UserLoginState extends State<UserLogin> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
   bool isLoading = false;
 
   void loginUser() async {
@@ -29,32 +31,48 @@ class _UserLoginState extends State<UserLogin> {
       switch (response["user_role"]) {
         case "User":
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(response["message"])),
+            SnackBar(
+              content: Text(response["message"]),
+            ),
           );
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (_) => DcForm(userId: response["user_id"]),
+              builder: (_) => DcForm(
+                userId: response["user_id"],
+              ),
             ),
           );
           break;
 
         case "Admin":
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Welcome Admin!")),
+            const SnackBar(
+              content: Text("Welcome Admin!"),
+            ),
           );
-          Navigator.pushReplacementNamed(context, '/view_dc_details');
+
+          Navigator.pushReplacementNamed(
+            context,
+            '/view_dc_details',
+          );
           break;
 
         default:
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-                content: Text("Access denied: You do not have permission.")),
+              content: Text(
+                "Access denied: You do not have permission.",
+              ),
+            ),
           );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(
+          content: Text(e.toString()),
+        ),
       );
     } finally {
       setState(() => isLoading = false);
@@ -64,17 +82,28 @@ class _UserLoginState extends State<UserLogin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: const ThemeToggleAction(),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blueAccent, Colors.lightBlue],
+            colors: Theme.of(context).brightness == Brightness.dark
+                ? [
+                    const Color(0xFF101820),
+                    const Color(0xFF3A1B2B),
+                  ]
+                : [
+                    const Color(0xFF8B174A),
+                    const Color(0xFF5B1638),
+                  ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+            ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -101,13 +130,15 @@ class _UserLoginState extends State<UserLogin> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                // Email TextField
+
+                // Email
                 TextField(
                   controller: emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor:
+                        Theme.of(context).colorScheme.surface,
                     hintText: "Email",
                     prefixIcon: const Icon(Icons.email),
                     border: OutlineInputBorder(
@@ -116,14 +147,17 @@ class _UserLoginState extends State<UserLogin> {
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 16),
-                // Password TextField
+
+                // Password
                 TextField(
                   controller: passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor:
+                        Theme.of(context).colorScheme.surface,
                     hintText: "Password",
                     prefixIcon: const Icon(Icons.lock),
                     border: OutlineInputBorder(
@@ -132,8 +166,10 @@ class _UserLoginState extends State<UserLogin> {
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 24),
-                // Login Button
+
+                // Login button
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -144,30 +180,39 @@ class _UserLoginState extends State<UserLogin> {
                         borderRadius: BorderRadius.circular(30),
                       ),
                       elevation: 5,
-                      backgroundColor: Colors.white,
+                      backgroundColor:
+                          Theme.of(context).colorScheme.surface,
                     ),
                     child: isLoading
-                        ? const CircularProgressIndicator(
-                            color: Colors.blue,
+                        ? CircularProgressIndicator(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary,
                           )
-                        : const Text(
+                        : Text(
                             "Login",
                             style: TextStyle(
-                              color: Colors.blue,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                   ),
                 ),
+
                 const SizedBox(height: 16),
+
                 TextButton(
                   onPressed: () {
-                    // Implement forgot password
+                    // Implement forgot password.
                   },
                   child: const Text(
                     "Forgot Password?",
-                    style: TextStyle(color: Colors.white70),
+                    style: TextStyle(
+                      color: Colors.white70,
+                    ),
                   ),
                 ),
               ],

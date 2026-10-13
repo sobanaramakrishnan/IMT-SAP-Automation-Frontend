@@ -24,7 +24,7 @@ class DcDetails {
   factory DcDetails.fromJson(Map<String, dynamic> json) {
     return DcDetails(
       dcId: json["dc_id"],
-      userId: json["user_id"], 
+      userId: json["user_id"],
       dcNumber: json["dc_number"],
       partName: json["part_name"],
       partNumber: json["part_number"],

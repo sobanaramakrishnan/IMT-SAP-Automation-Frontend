@@ -5,7 +5,9 @@ import '../models/login_request.dart';
 class AuthService {
   static const String baseUrl = "http://127.0.0.1:8000";
 
-  static Future<Map<String, dynamic>> login(LoginRequest request) async {
+  static Future<Map<String, dynamic>> login(
+    LoginRequest request,
+  ) async {
     final url = Uri.parse("$baseUrl/user/login");
 
     final response = await http.post(

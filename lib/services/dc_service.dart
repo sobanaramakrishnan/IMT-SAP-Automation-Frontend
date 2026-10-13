@@ -6,7 +6,7 @@ import '../models/dc_details.dart';
 class DcService {
   static const String baseUrl = "http://127.0.0.1:8000";
 
-  // ================= CREATE DC =================
+  // CREATE DC
   static Future<void> submitDcDetails({
     required int userId,
     required String dcNumber,
@@ -28,7 +28,10 @@ class DcService {
 
     if (imageFile != null) {
       request.files.add(
-        await http.MultipartFile.fromPath("image", imageFile.path),
+        await http.MultipartFile.fromPath(
+          "image",
+          imageFile.path,
+        ),
       );
     }
 
@@ -39,7 +42,7 @@ class DcService {
     }
   }
 
-  // ================= FETCH DC LIST =================
+  // FETCH DC LIST
   static Future<List<DcDetails>> fetchDcDetails() async {
     final response = await http.get(
       Uri.parse("$baseUrl/view-dc-details"),
@@ -52,7 +55,9 @@ class DcService {
 
       return data
           .map(
-            (item) => DcDetails.fromJson(item as Map<String, dynamic>),
+            (item) => DcDetails.fromJson(
+              item as Map<String, dynamic>,
+            ),
           )
           .toList();
     } else {
@@ -60,11 +65,11 @@ class DcService {
     }
   }
 
-  // ================= VERIFY / APPROVE / REJECT =================
+  // VERIFY / APPROVE / REJECT
   static Future<void> verifyDc({
     required int dcId,
     required int userId,
-    required String status, // Approved / Rejected
+    required String status,
     required double reviewedWeight,
     required int reviewedQuantity,
     required String processType,
@@ -89,7 +94,9 @@ class DcService {
     );
 
     if (response.statusCode != 200) {
-      throw Exception("DC verification failed: ${response.body}");
+      throw Exception(
+        "DC verification failed: ${response.body}",
+      );
     }
   }
 }

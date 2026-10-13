@@ -1,3 +1,4 @@
+import '../main.dart' show ThemeToggleAction;
 import 'package:flutter/material.dart';
 
 class AccountLogin extends StatelessWidget {
@@ -5,8 +6,11 @@ class AccountLogin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text("Account Login – Coming Soon")),
+    return Scaffold(
+      floatingActionButton: const ThemeToggleAction(),
+      body: Center(
+        child: Text("Account Login – Coming Soon"),
+      ),
     );
   }
 }

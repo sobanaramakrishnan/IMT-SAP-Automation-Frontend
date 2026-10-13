@@ -1,3 +1,4 @@
+import '../main.dart' show ThemeToggleAction;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,7 +7,10 @@ import '../services/dc_service.dart';
 class DcForm extends StatefulWidget {
   final int userId;
 
-  const DcForm({super.key, required this.userId});
+  const DcForm({
+    super.key,
+    required this.userId,
+  });
 
   @override
   State<DcForm> createState() => _DcFormState();
@@ -24,29 +28,20 @@ class _DcFormState extends State<DcForm> {
 
   @override
   void dispose() {
-    try {
-      dcNumberCtrl.dispose();
-    } catch (_) {}
-    try {
-      partNameCtrl.dispose();
-    } catch (_) {}
-    try {
-      partNumberCtrl.dispose();
-    } catch (_) {}
-    try {
-      quantityCtrl.dispose();
-    } catch (_) {}
-    try {
-      weightCtrl.dispose();
-    } catch (_) {}
+    dcNumberCtrl.dispose();
+    partNameCtrl.dispose();
+    partNumberCtrl.dispose();
+    quantityCtrl.dispose();
+    weightCtrl.dispose();
     super.dispose();
   }
 
-  /// PICK IMAGE (OPTIONAL)
+  // PICK IMAGE (OPTIONAL)
   Future<void> pickImage() async {
     final picked = await ImagePicker().pickImage(
       source: ImageSource.gallery,
     );
+
     if (picked != null) {
       setState(() {
         image = File(picked.path);
@@ -54,7 +49,7 @@ class _DcFormState extends State<DcForm> {
     }
   }
 
-  /// SUBMIT DC DETAILS
+  // SUBMIT DC DETAILS
   Future<void> submit() async {
     setState(() => isLoading = true);
 
@@ -66,7 +61,7 @@ class _DcFormState extends State<DcForm> {
         partNumber: partNumberCtrl.text,
         quantity: int.parse(quantityCtrl.text),
         weight: double.parse(weightCtrl.text),
-        imageFile: image, // OPTIONAL
+        imageFile: image,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -75,16 +70,19 @@ class _DcFormState extends State<DcForm> {
         ),
       );
 
-      /// CLEAR FORM AFTER SUBMIT
+      // CLEAR FORM AFTER SUBMIT
       dcNumberCtrl.clear();
       partNameCtrl.clear();
       partNumberCtrl.clear();
       quantityCtrl.clear();
       weightCtrl.clear();
+
       setState(() => image = null);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(
+          content: Text(e.toString()),
+        ),
       );
     } finally {
       setState(() => isLoading = false);
@@ -105,6 +103,10 @@ class _DcFormState extends State<DcForm> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Create Delivery Challan (DC)"),
+        actions: const [
+          ThemeToggleAction(),
+          SizedBox(width: 8),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -119,28 +121,28 @@ class _DcFormState extends State<DcForm> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  /// DC NUMBER
+                  // DC NUMBER
                   TextField(
                     controller: dcNumberCtrl,
                     decoration: input("DC Number"),
                   ),
                   const SizedBox(height: 16),
 
-                  /// PART NAME
+                  // PART NAME
                   TextField(
                     controller: partNameCtrl,
                     decoration: input("Part Name"),
                   ),
                   const SizedBox(height: 16),
 
-                  /// PART NUMBER
+                  // PART NUMBER
                   TextField(
                     controller: partNumberCtrl,
                     decoration: input("Part Number"),
                   ),
                   const SizedBox(height: 16),
 
-                  /// WEIGHT + QUANTITY
+                  // WEIGHT + QUANTITY
                   Row(
                     children: [
                       Expanded(
@@ -162,10 +164,12 @@ class _DcFormState extends State<DcForm> {
                   ),
                   const SizedBox(height: 20),
 
-                  /// IMAGE UPLOAD
+                  // IMAGE UPLOAD
                   const Text(
                     "Upload Image (Optional)",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
 
@@ -175,7 +179,9 @@ class _DcFormState extends State<DcForm> {
                         height: 90,
                         width: 120,
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
+                          border: Border.all(
+                            color: Colors.grey,
+                          ),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: image == null
@@ -202,7 +208,9 @@ class _DcFormState extends State<DcForm> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                            ),
                           ),
                         ),
                       ),
@@ -211,7 +219,7 @@ class _DcFormState extends State<DcForm> {
 
                   const SizedBox(height: 24),
 
-                  /// SUBMIT BUTTON
+                  // SUBMIT BUTTON
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [

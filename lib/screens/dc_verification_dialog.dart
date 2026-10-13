@@ -11,16 +11,20 @@ class DcVerificationDialog extends StatefulWidget {
   });
 
   @override
-  State<DcVerificationDialog> createState() => _DcVerificationDialogState();
+  State<DcVerificationDialog> createState() =>
+      _DcVerificationDialogState();
 }
 
-class _DcVerificationDialogState extends State<DcVerificationDialog> {
+class _DcVerificationDialogState
+    extends State<DcVerificationDialog> {
   String processDecision = "Machining";
   bool isLoading = false;
 
   final TextEditingController remarksCtrl = TextEditingController();
-  final TextEditingController verifiedWeightCtrl = TextEditingController();
-  final TextEditingController verifiedQuantityCtrl = TextEditingController();
+  final TextEditingController verifiedWeightCtrl =
+      TextEditingController();
+  final TextEditingController verifiedQuantityCtrl =
+      TextEditingController();
 
   @override
   void dispose() {
@@ -47,21 +51,26 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
       await DcService.verifyDc(
         dcId: widget.dc.dcId,
         userId: widget.dc.userId,
-        status: action, // Approved / Rejected
-        reviewedWeight: double.parse(verifiedWeightCtrl.text),
-        reviewedQuantity: int.parse(verifiedQuantityCtrl.text),
+        status: action,
+        reviewedWeight: double.parse(
+          verifiedWeightCtrl.text,
+        ),
+        reviewedQuantity: int.parse(
+          verifiedQuantityCtrl.text,
+        ),
         processType: processDecision,
         notificationStatus: "true",
       );
 
-      /// RETURN RESULT TO DASHBOARD
       Navigator.pop(
         context,
         action == "Approved" ? "Verified" : "Pending",
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(
+          content: Text(e.toString()),
+        ),
       );
     } finally {
       if (mounted) {
@@ -82,16 +91,20 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              /// HEADER
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     "DC Verification",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary,
+                        ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -102,119 +115,41 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
 
               const Divider(),
 
-              /// BODY
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  /// LEFT
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _info("DC Number", widget.dc.dcNumber),
-                        _info("Part Name", widget.dc.partName),
-                        _info("Part Number", widget.dc.partNumber),
-                        _info("Weight", "${widget.dc.weight} kg"),
-                        _info(
-                          "Quantity",
-                          widget.dc.quantity.toString(),
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          height: 120,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Colors.grey.shade300,
-                            ),
-                          ),
-                          child: widget.dc.imageUrl != null
-                              ? Image.network(
-                                  widget.dc.imageUrl!,
-                                  fit: BoxFit.cover,
-                                )
-                              : const Icon(
-                                  Icons.image,
-                                  size: 40,
-                                ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(width: 16),
-
-                  /// RIGHT
-                  Expanded(
-                    child: Column(
-                      children: [
-                        TextField(
-                          controller: verifiedWeightCtrl,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: "Verified Weight (kg)",
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: verifiedQuantityCtrl,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: "Verified Quantity",
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        DropdownButtonFormField<String>(
-                          value: processDecision,
-                          items: const [
-                            DropdownMenuItem(
-                              value: "Machining",
-                              child: Text("Machining"),
-                            ),
-                            DropdownMenuItem(
-                              value: "Assembly",
-                              child: Text("Assembly"),
-                            ),
-                          ],
-                          onChanged: (v) =>
-                              setState(() => processDecision = v!),
-                          decoration: const InputDecoration(
-                            labelText: "Process Decision",
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: remarksCtrl,
-                          maxLines: 3,
-                          decoration: const InputDecoration(
-                            labelText: "Remarks (Optional)",
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              if (MediaQuery.sizeOf(context).width < 700) ...[
+                _detailsSection(context),
+                const SizedBox(height: 16),
+                _verificationFields(),
+              ] else
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: _detailsSection(context)),
+                    const SizedBox(width: 16),
+                    Expanded(child: _verificationFields()),
+                  ],
+                ),
 
               const SizedBox(height: 20),
 
-              /// BUTTONS
               Row(
                 children: [
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
                       ),
                       onPressed: isLoading
                           ? null
                           : () => _submit("Approved"),
                       child: isLoading
-                          ? const CircularProgressIndicator(
-                              color: Colors.white,
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             )
                           : const Text("Verify & Approve"),
                     ),
@@ -224,6 +159,7 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
                       ),
                       onPressed: isLoading
                           ? null
@@ -240,17 +176,109 @@ class _DcVerificationDialogState extends State<DcVerificationDialog> {
     );
   }
 
+  Widget _detailsSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _info("DC Number", widget.dc.dcNumber),
+        _info("Part Name", widget.dc.partName),
+        _info("Part Number", widget.dc.partNumber),
+        _info("Weight", "${widget.dc.weight} kg"),
+        _info("Quantity", widget.dc.quantity.toString()),
+        const SizedBox(height: 12),
+        Container(
+          height: 120,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            border: Border.all(color: Theme.of(context).dividerColor),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: widget.dc.imageUrl != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    widget.dc.imageUrl!,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Icon(
+                      Icons.broken_image_outlined,
+                      size: 40,
+                    ),
+                  ),
+                )
+              : const Center(
+                  child: Icon(Icons.image_outlined, size: 40),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _verificationFields() {
+    return Column(
+      children: [
+        TextField(
+          controller: verifiedWeightCtrl,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: "Verified Weight (kg)",
+            prefixIcon: Icon(Icons.scale_outlined),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: verifiedQuantityCtrl,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: "Verified Quantity",
+            prefixIcon: Icon(Icons.inventory_2_outlined),
+          ),
+        ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          value: processDecision,
+          items: const [
+            DropdownMenuItem(value: "Machining", child: Text("Machining")),
+            DropdownMenuItem(value: "Assembly", child: Text("Assembly")),
+          ],
+          onChanged: (value) {
+            if (value != null) {
+              setState(() => processDecision = value);
+            }
+          },
+          decoration: const InputDecoration(
+            labelText: "Process Decision",
+            prefixIcon: Icon(Icons.precision_manufacturing),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: remarksCtrl,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            labelText: "Remarks (Optional)",
+            prefixIcon: Icon(Icons.notes),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _info(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Text.rich(
         TextSpan(
           text: "$label: ",
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
           children: [
             TextSpan(
               text: value,
-              style: const TextStyle(fontWeight: FontWeight.normal),
+              style: const TextStyle(
+                fontWeight: FontWeight.normal,
+              ),
             ),
           ],
         ),
